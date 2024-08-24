@@ -15,8 +15,9 @@ jobs:
       run: |
         ISSUE_NUMBER=${{ github.event.issue.number }}
         ISSUE_TITLE="${{ github.event.issue.title }}"
-        CAMEL_CASE_TITLE=$(echo $ISSUE_TITLE | sed -E 's/(^|-)([a-z])/\U\2/g' | sed -E 's/[ -]//g')
-        BRANCH_NAME="feature/$ISSUE_NUMBER/$CAMEL_CASE_TITLE"
+        # Convert ISSUE_TITLE to snake_case
+        SNAKE_CASE_TITLE=$(echo $ISSUE_TITLE | sed -E 's/([A-Z])/_\1/g' | tr -s '_' | tr '[:upper:]' '[:lower:]' | sed 's/[ -]/_/g' | sed 's/^_//')
+        BRANCH_NAME="feature/$ISSUE_NUMBER/$SNAKE_CASE_TITLE"
         
         echo "Creating branch $BRANCH_NAME"
         
@@ -28,6 +29,7 @@ jobs:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         ISSUE_NUMBER=${{ github.event.issue.number }}
-        CAMEL_CASE_TITLE=$(echo ${{ github.event.issue.title }} | sed -E 's/(^|-)([a-z])/\U\2/g' | sed -E 's/[ -]//g')
-        BRANCH_NAME="feature/$ISSUE_NUMBER/$CAMEL_CASE_TITLE"
+        # Convert ISSUE_TITLE to snake_case again for the comment
+        SNAKE_CASE_TITLE=$(echo ${{ github.event.issue.title }} | sed -E 's/([A-Z])/_\1/g' | tr -s '_' | tr '[:upper:]' '[:lower:]' | sed 's/[ -]/_/g' | sed 's/^_//')
+        BRANCH_NAME="feature/$ISSUE_NUMBER/$SNAKE_CASE_TITLE"
         gh issue comment $ISSUE_NUMBER --body "Branch created: $BRANCH_NAME"
