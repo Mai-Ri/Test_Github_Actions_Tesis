@@ -42,7 +42,7 @@ jobs:
         ISSUE_TITLE="${{ github.event.issue.title }}"
         SNAKE_CASE_TITLE=$(echo "$ISSUE_TITLE" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/_/g' | sed 's/^_//;s/_$//')
         BRANCH_NAME="feature/$ISSUE_NUMBER/$SNAKE_CASE_TITLE"
-        COMMENT="The branch \`$BRANCH_NAME\` has been created. You can check it out with the following commands: <br> Hello"
+        COMMENT="The branch \`$BRANCH_NAME\` has been created. You can check it out with the following commands: <br> ``` hello ```"
         gh issue comment $ISSUE_NUMBER --body "$COMMENT"
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
