@@ -29,46 +29,10 @@ jobs:
     - name: Add branch to the issue
       run: |
         ISSUE_NUMBER=${{ github.event.issue.number }}
-        # Convert ISSUE_TITLE to snake_case again for the comment
         SNAKE_CASE_TITLE=$(echo ${{ github.event.issue.title }} | sed -E 's/([A-Z])/_\1/g' | tr -s '_' | tr '[:upper:]' '[:lower:]' | sed 's/[ -]/_/g' | sed 's/^_//')
         BRANCH_NAME="feature/$ISSUE_NUMBER/$SNAKE_CASE_TITLE"
-        gh issue comment $ISSUE_NUMBER --body "Branch created: $BRANCH_NAME"
-
-    - name: Get issue details
-      run: |
-        ISSUE_NUMBER=${{ github.event.issue.number }}
-        echo "Getting details for Issue Number: $ISSUE_NUMBER"
-        gh issue view $ISSUE_NUMBER --json title,state -q .state > issue_state.txt
-        ISSUE_STATE=$(cat issue_state.txt)
-        echo "Issue State: $ISSUE_STATE"
-
-        if [ "$ISSUE_STATE" != "open" ]; then
-          echo "Issue #$ISSUE_NUMBER is not open. Skipping association."
-          exit 0
-        fi
-
-    - name: Verify or create "in progress" label
-      run: |
-        LABEL_EXISTS=$(gh label list --json name -q '.[] | select(.name=="in progress")')
-        if [ -z "$LABEL_EXISTS" ]; then
-          echo "Label 'in progress' does not exist. Creating label..."
-          gh label create "in progress" --color FF5733 --description "Indicates that the issue is in progress"
-        else
-          echo "Label 'in progress' already exists."
-        fi
-
-    - name: Associate branch with issue
-      run: |
-        ISSUE_NUMBER=${{ github.event.issue.number }}
-        BRANCH_NAME=${{ github.ref_name }}
         echo "Associating Branch: $BRANCH_NAME with Issue: $ISSUE_NUMBER"
         gh issue comment $ISSUE_NUMBER --body "Branch $BRANCH_NAME has been created and associated with this issue."
-
-    - name: Mark issue as in progress
-      run: |
-        ISSUE_NUMBER=${{ github.event.issue.number }}
-        echo "Marking Issue #$ISSUE_NUMBER as 'in progress'"
-        gh issue edit $ISSUE_NUMBER --add-label "in progress"
 
     - name: Check for orphan feature branches
       run: |
