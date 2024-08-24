@@ -36,14 +36,28 @@ jobs:
         git push origin "$BRANCH_NAME"
         echo "Branch $BRANCH_NAME created and pushed."
 
+    - name: Comment on Issue with Branch Info
+      run: |
+        ISSUE_NUMBER=${{ github.event.issue.number }}
+        BRANCH_NAME="feature/$ISSUE_NUMBER/$(echo "${{ github.event.issue.title }}" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/_/g' | sed 's/^_//;s/_$//')"
+        COMMENT="The branch \`$BRANCH_NAME\` has been created. You can check it out with the following commands:\n\n\`\`\`bash\ngit fetch origin\ngit checkout $BRANCH_NAME\n\`\`\`"
+        gh issue comment $ISSUE_NUMBER --body "$COMMENT"
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed for the gh command
+
     - name: Create Draft Pull Request
       run: |
         ISSUE_NUMBER=${{ github.event.issue.number }}
         ISSUE_TITLE="${{ github.event.issue.title }}"
         BRANCH_NAME="feature/$ISSUE_NUMBER/$(echo "$ISSUE_TITLE" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/_/g' | sed 's/^_//;s/_$//')"
 
+        # Confirm the body of the PR is correctly set
+        PR_BODY="closes #$ISSUE_NUMBER"
+        echo "PR body: $PR_BODY"
+
         # Create a draft pull request targeting 'develop' branch
-        gh pr create --draft --base develop --head "$BRANCH_NAME" --title "$ISSUE_TITLE" --body "closes #$ISSUE_NUMBER"
+        gh pr create --draft --base develop --head "$BRANCH_NAME" --title "$ISSUE_TITLE" --body "$PR_BODY"
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed for the gh command
