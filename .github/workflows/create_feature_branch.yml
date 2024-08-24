@@ -27,7 +27,7 @@ jobs:
         git push origin "$BRANCH_NAME"
         echo "Branch $BRANCH_NAME created and pushed."
 
-    - name: Add branch to the issue via API
+    - name: Add branch reference to the issue via API
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
@@ -35,10 +35,11 @@ jobs:
         ISSUE_TITLE="${{ github.event.issue.title }}"
         SNAKE_CASE_TITLE=$(echo "$ISSUE_TITLE" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/_/g' | sed 's/^_//;s/_$//')
         BRANCH_NAME="feature/$ISSUE_NUMBER/$SNAKE_CASE_TITLE"
-        COMMENT_BODY="Branch \`$BRANCH_NAME\` has been created and associated with this issue."
+        echo "Associating Branch: $BRANCH_NAME with Issue: $ISSUE_NUMBER"
         
+        # Crear un comentario y una referencia a la rama en el issue
         curl -X POST \
           -H "Authorization: token $GH_TOKEN" \
           -H "Accept: application/vnd.github.v3+json" \
           https://api.github.com/repos/${{ github.repository }}/issues/$ISSUE_NUMBER/comments \
-          -d "{\"body\":\"$COMMENT_BODY\"}"
+          -d "{\"body\":\"Branch \`$BRANCH_NAME\` has been created and associated with this issue.\n\n[View the branch](https://github.com/${{ github.repository }}/tree/$BRANCH_NAME)\"}"
