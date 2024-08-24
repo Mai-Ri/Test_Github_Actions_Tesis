@@ -17,8 +17,8 @@ jobs:
       run: |
         ISSUE_NUMBER=${{ github.event.issue.number }}
         ISSUE_TITLE="${{ github.event.issue.title }}"
-        # Convert ISSUE_TITLE to snake_case
-        SNAKE_CASE_TITLE=$(echo $ISSUE_TITLE | sed -E 's/([A-Z])/_\1/g' | tr -s '_' | tr '[:upper:]' '[:lower:]' | sed 's/[ -]/_/g' | sed 's/^_//')
+        # Convert ISSUE_TITLE to snake_case properly
+        SNAKE_CASE_TITLE=$(echo "$ISSUE_TITLE" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/_/g' | sed 's/^_//;s/_$//')
         BRANCH_NAME="feature/$ISSUE_NUMBER/$SNAKE_CASE_TITLE"
         
         echo "Creating branch $BRANCH_NAME"
@@ -32,15 +32,7 @@ jobs:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Asegura que GH_TOKEN esté disponible
       run: |
         ISSUE_NUMBER=${{ github.event.issue.number }}
-        SNAKE_CASE_TITLE=$(echo ${{ github.event.issue.title }} | sed -E 's/([A-Z])/_\1/g' | tr -s '_' | tr '[:upper:]' '[:lower:]' | sed 's/[ -]/_/g' | sed 's/^_//')
+        SNAKE_CASE_TITLE=$(echo "$ISSUE_TITLE" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/_/g' | sed 's/^_//;s/_$//')
         BRANCH_NAME="feature/$ISSUE_NUMBER/$SNAKE_CASE_TITLE"
         echo "Associating Branch: $BRANCH_NAME with Issue: $ISSUE_NUMBER"
-        gh issue comment $ISSUE_NUMBER --body "Branch $BRANCH_NAME has been created and associated with this issue." || echo "Failed to comment on issue #$ISSUE_NUMBER"
-
-    - name: Verify comment on issue
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        ISSUE_NUMBER=${{ github.event.issue.number }}
-        echo "Verifying that the comment was added to issue #$ISSUE_NUMBER"
-        gh issue view $ISSUE_NUMBER --comments
+        gh issue comment $ISSUE_NUMBER --body "Branch $BRANCH_NAME has been created and associated with this issue."
