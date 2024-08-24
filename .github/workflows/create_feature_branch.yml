@@ -41,7 +41,7 @@ jobs:
         ISSUE_NUMBER=${{ github.event.issue.number }}
         KEBAB_CASE_TITLE=$(echo "${{ github.event.issue.title }}" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g' | sed 's/^-//;s/-$//')
         BRANCH_NAME="feature/$ISSUE_NUMBER/$KEBAB_CASE_TITLE"
-        COMMENT="Hola!\nQuiero un enter"
+        COMMENT="Hola!<br/>Quiero un enter"
         echo "$COMMENT" | gh issue comment $ISSUE_NUMBER --body -
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
