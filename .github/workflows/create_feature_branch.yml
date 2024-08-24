@@ -1,4 +1,4 @@
-name: Create and Associate Branch with Issue
+name: Create Branch and Draft PR for Issue
 
 on:
   issues:
@@ -24,22 +24,21 @@ jobs:
         echo "Creating branch $BRANCH_NAME"
         
         git checkout -b "$BRANCH_NAME"
+        
+        # Add an empty commit to ensure the branch has at least one commit
+        git commit --allow-empty -m "chore: initialize branch for issue #$ISSUE_NUMBER"
+        
         git push origin "$BRANCH_NAME"
         echo "Branch $BRANCH_NAME created and pushed."
 
-    - name: Add branch reference to the issue via API
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Create Draft Pull Request
       run: |
         ISSUE_NUMBER=${{ github.event.issue.number }}
         ISSUE_TITLE="${{ github.event.issue.title }}"
-        SNAKE_CASE_TITLE=$(echo "$ISSUE_TITLE" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/_/g' | sed 's/^_//;s/_$//')
-        BRANCH_NAME="feature/$ISSUE_NUMBER/$SNAKE_CASE_TITLE"
-        echo "Associating Branch: $BRANCH_NAME with Issue: $ISSUE_NUMBER"
-        
-        # Crear un comentario y una referencia a la rama en el issue
-        curl -X POST \
-          -H "Authorization: token $GH_TOKEN" \
-          -H "Accept: application/vnd.github.v3+json" \
-          https://api.github.com/repos/${{ github.repository }}/issues/$ISSUE_NUMBER/comments \
-          -d "{\"body\":\"Branch \`$BRANCH_NAME\` has been created and associated with this issue.\n\n[View the branch](https://github.com/${{ github.repository }}/tree/$BRANCH_NAME)\"}"
+        BRANCH_NAME="feature/$ISSUE_NUMBER/$(echo "$ISSUE_TITLE" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/_/g' | sed 's/^_//;s/_$//')"
+
+        # Create a draft pull request targeting 'develop' branch
+        gh pr create --draft --base develop --head "$BRANCH_NAME" --title "$ISSUE_TITLE" --body "closes #$ISSUE_NUMBER"
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed for the gh command
