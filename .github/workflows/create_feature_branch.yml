@@ -7,6 +7,8 @@ on:
 jobs:
   create_and_associate_branch:
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Configura GH_TOKEN globalmente
     steps:
     - name: Check out the repository
       uses: actions/checkout@v3
@@ -25,8 +27,6 @@ jobs:
         git push origin "$BRANCH_NAME"
 
     - name: Add branch to the issue
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         ISSUE_NUMBER=${{ github.event.issue.number }}
         # Convert ISSUE_TITLE to snake_case again for the comment
@@ -59,3 +59,14 @@ jobs:
         ISSUE_NUMBER=${{ github.event.issue.number }}
         echo "Marking Issue #$ISSUE_NUMBER as 'in progress'"
         gh issue edit $ISSUE_NUMBER --add-label "in progress"
+
+    - name: Check for orphan feature branches
+      run: |
+        echo "Checking for feature branches without associated issues..."
+        BRANCHES=$(git branch -r | grep "origin/feature/" | grep -v "origin/feature/[0-9]")
+        if [ -n "$BRANCHES" ]; then
+          echo "Warning: The following feature branches do not appear to be associated with any issue:"
+          echo "$BRANCHES"
+        else
+          echo "All feature branches are associated with issues."
+        fi
