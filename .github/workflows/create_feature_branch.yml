@@ -29,7 +29,8 @@ jobs:
 
     - name: Add branch to the issue
       env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Asegura que GH_TOKEN esté disponible
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        ISSUE_TITLE: ${{ github.event.issue.title }}  # Reutilizamos el título
       run: |
         ISSUE_NUMBER=${{ github.event.issue.number }}
         SNAKE_CASE_TITLE=$(echo "$ISSUE_TITLE" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/_/g' | sed 's/^_//;s/_$//')
