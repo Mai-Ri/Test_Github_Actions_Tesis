@@ -44,20 +44,25 @@ jobs:
     
         # Define the comment body and store it in a variable
         COMMENT=$(cat <<EOF
-        The branch \`$BRANCH_NAME\` has been created. You can check it out with the following commands:
-    
-        \`\`\`bash
-        git fetch origin
-        git checkout $BRANCH_NAME
-        \`\`\`
-        EOF
-        )
+          The branch \`$BRANCH_NAME\` has been created. You can check it out with the following commands:
+          
+          \`\`\`bash
+          git fetch origin
+          git checkout $BRANCH_NAME
+          \`\`\`
+          EOF
+              )
+
+        # Debugging: Output the comment string to ensure it's correct
+        echo "DEBUG: Comment content:"
+        echo "$COMMENT"
     
         # Use the gh CLI to post the comment
         echo "$COMMENT" | gh issue comment $ISSUE_NUMBER --body -
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed for the gh command
+    
 
 
     - name: Create Draft Pull Request
