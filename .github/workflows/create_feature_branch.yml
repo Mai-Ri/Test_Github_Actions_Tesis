@@ -35,7 +35,7 @@ jobs:
         
         git push origin "$BRANCH_NAME"
         echo "Branch $BRANCH_NAME created and pushed."
-            
+        
     - name: Comment on Issue with Branch Info
       run: |
         ISSUE_NUMBER=${{ github.event.issue.number }}
@@ -47,8 +47,6 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed for the gh command
-
-
         
     - name: Create Draft Pull Request
       run: |
