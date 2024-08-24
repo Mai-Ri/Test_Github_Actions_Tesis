@@ -39,13 +39,15 @@ jobs:
     - name: Comment on Issue with Branch Info
       run: |
         ISSUE_NUMBER=${{ github.event.issue.number }}
-        KEBAB_CASE_TITLE=$(echo "${{ github.event.issue.title }}" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g' | sed 's/^-//;s/-$//')
-        BRANCH_NAME="feature/$ISSUE_NUMBER/$KEBAB_CASE_TITLE"
-        COMMENT="Hola!<br/>Quiero un enter"
-        echo "$COMMENT" | gh issue comment $ISSUE_NUMBER --body -
+        ISSUE_TITLE="${{ github.event.issue.title }}"
+        SNAKE_CASE_TITLE=$(echo "$ISSUE_TITLE" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/_/g' | sed 's/^_//;s/_$//')
+        BRANCH_NAME="feature/$ISSUE_NUMBER/$SNAKE_CASE_TITLE"
+        COMMENT="The branch \`$BRANCH_NAME\` has been created. You can check it out with the following commands: <br> Hello"
+        gh issue comment $ISSUE_NUMBER --body "$COMMENT"
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed for the gh command
+
         
     - name: Create Draft Pull Request
       run: |
