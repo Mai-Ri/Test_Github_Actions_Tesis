@@ -22,9 +22,9 @@ jobs:
       run: |
         ISSUE_NUMBER=${{ github.event.issue.number }}
         ISSUE_TITLE="${{ github.event.issue.title }}"
-        # Convert ISSUE_TITLE to snake_case properly
-        SNAKE_CASE_TITLE=$(echo "$ISSUE_TITLE" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/_/g' | sed 's/^_//;s/_$//')
-        BRANCH_NAME="feature/$ISSUE_NUMBER/$SNAKE_CASE_TITLE"
+        # Convert ISSUE_TITLE to kebab-case (hyphen-separated)
+        KEBAB_CASE_TITLE=$(echo "$ISSUE_TITLE" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g' | sed 's/^-//;s/-$//')
+        BRANCH_NAME="feature/$ISSUE_NUMBER/$KEBAB_CASE_TITLE"
         
         echo "Creating branch $BRANCH_NAME"
         
@@ -39,11 +39,10 @@ jobs:
     - name: Comment on Issue with Branch Info
       run: |
         ISSUE_NUMBER=${{ github.event.issue.number }}
-        ISSUE_TITLE="${{ github.event.issue.title }}"
-        SNAKE_CASE_TITLE=$(echo "$ISSUE_TITLE" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/_/g' | sed 's/^_//;s/_$//')
-        BRANCH_NAME="feature/$ISSUE_NUMBER/$SNAKE_CASE_TITLE"
+        KEBAB_CASE_TITLE=$(echo "${{ github.event.issue.title }}" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g' | sed 's/^-//;s/-$//')
+        BRANCH_NAME="feature/$ISSUE_NUMBER/$KEBAB_CASE_TITLE"
         COMMENT="The branch \`$BRANCH_NAME\` has been created. You can check it out with the following commands:\n\n\`\`\`bash\n git fetch origin\n git checkout $BRANCH_NAME\n\`\`\`"
-        gh issue comment $ISSUE_NUMBER --body "$COMMENT"
+        echo "$COMMENT" | gh issue comment $ISSUE_NUMBER --body -
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed for the gh command
@@ -52,7 +51,8 @@ jobs:
       run: |
         ISSUE_NUMBER=${{ github.event.issue.number }}
         ISSUE_TITLE="${{ github.event.issue.title }}"
-        BRANCH_NAME="feature/$ISSUE_NUMBER/$(echo "$ISSUE_TITLE" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/_/g' | sed 's/^_//;s/_$//')"
+        KEBAB_CASE_TITLE=$(echo "$ISSUE_TITLE" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g' | sed 's/^-//;s/-$//')
+        BRANCH_NAME="feature/$ISSUE_NUMBER/$KEBAB_CASE_TITLE"
 
         # Confirm the body of the PR is correctly set
         PR_BODY="closes #$ISSUE_NUMBER"
