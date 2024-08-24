@@ -1,9 +1,10 @@
 name: Associate Branch with Issue
 
 on:
-  push:
-    branches:
-      - 'feature/*'
+  workflow_run:
+    workflows: ["Create Feature Branch on Issue Creation"]
+    types:
+      - completed
 
 jobs:
   associate_branch:
