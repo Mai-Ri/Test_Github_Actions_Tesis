@@ -13,6 +13,9 @@ jobs:
     - name: Check out the repository
       uses: actions/checkout@v3
 
+    - name: Install GitHub CLI
+      run: sudo apt-get install gh -y
+
     - name: Create a branch
       run: |
         ISSUE_NUMBER=${{ github.event.issue.number }}
@@ -36,4 +39,7 @@ jobs:
         SNAKE_CASE_TITLE=$(echo "$ISSUE_TITLE" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/_/g' | sed 's/^_//;s/_$//')
         BRANCH_NAME="feature/$ISSUE_NUMBER/$SNAKE_CASE_TITLE"
         echo "Associating Branch: $BRANCH_NAME with Issue: $ISSUE_NUMBER"
-        gh issue comment $ISSUE_NUMBER --body "Branch $BRANCH_NAME has been created and associated with this issue."
+        gh issue comment $ISSUE_NUMBER --body "Branch \`$BRANCH_NAME\` has been created and associated with this issue."
+        
+    - name: List issues (Debugging)
+      run: gh issue list
