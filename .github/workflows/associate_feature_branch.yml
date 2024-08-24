@@ -1,10 +1,9 @@
 name: Associate Branch with Issue
 
 on:
-  workflow_run:
-    workflows: ["Create Feature Branch on Issue Creation"]
-    types:
-      - completed
+  push:
+    branches:
+      - 'feature/*'
 
 jobs:
   associate_branch:
@@ -14,15 +13,25 @@ jobs:
       id: extract_issue
       run: |
         BRANCH_NAME=${{ github.ref_name }}
-        ISSUE_NUMBER=$(echo $BRANCH_NAME | grep -oP 'feature/\K\d+')
-        echo "ISSUE_NUMBER=$ISSUE_NUMBER" >> $GITHUB_ENV
+        echo "Branch Name: $BRANCH_NAME"
+        if [[ "$BRANCH_NAME" =~ feature\/[0-9]+ ]]; then
+          ISSUE_NUMBER=$(echo $BRANCH_NAME | grep -oP 'feature/\K\d+')
+          echo "Extracted Issue Number: $ISSUE_NUMBER"
+          echo "ISSUE_NUMBER=$ISSUE_NUMBER" >> $GITHUB_ENV
+        else
+          echo "This branch does not follow the 'feature/#/name' pattern."
+          echo "Warning: No issue number found in branch name $BRANCH_NAME. This branch may not be associated with any issue."
+          exit 0
+        fi
 
     - name: Get issue details
       if: env.ISSUE_NUMBER != ''
       run: |
         ISSUE_NUMBER=${{ env.ISSUE_NUMBER }}
+        echo "Getting details for Issue Number: $ISSUE_NUMBER"
         gh issue view $ISSUE_NUMBER --json title,state -q .state > issue_state.txt
         ISSUE_STATE=$(cat issue_state.txt)
+        echo "Issue State: $ISSUE_STATE"
 
         if [ "$ISSUE_STATE" != "open" ]; then
           echo "Issue #$ISSUE_NUMBER is not open. Skipping association."
@@ -34,10 +43,23 @@ jobs:
       run: |
         ISSUE_NUMBER=${{ env.ISSUE_NUMBER }}
         BRANCH_NAME=${{ github.ref_name }}
+        echo "Associating Branch: $BRANCH_NAME with Issue: $ISSUE_NUMBER"
         gh issue comment $ISSUE_NUMBER --body "Branch $BRANCH_NAME has been created and associated with this issue."
 
     - name: Mark issue as in progress
       if: env.ISSUE_NUMBER != ''
       run: |
         ISSUE_NUMBER=${{ env.ISSUE_NUMBER }}
+        echo "Marking Issue #$ISSUE_NUMBER as 'in progress'"
         gh issue edit $ISSUE_NUMBER --add-label "in progress"
+
+    - name: Check for orphan feature branches
+      run: |
+        echo "Checking for feature branches without associated issues..."
+        BRANCHES=$(git branch -r | grep "origin/feature/" | grep -v "origin/feature/[0-9]")
+        if [ -n "$BRANCHES" ]; then
+          echo "Warning: The following feature branches do not appear to be associated with any issue:"
+          echo "$BRANCHES"
+        else
+          echo "All feature branches are associated with issues."
+        fi
