@@ -8,7 +8,7 @@ jobs:
   create_and_associate_branch:
     runs-on: ubuntu-latest
     env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Configura GH_TOKEN globalmente
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
     - name: Check out the repository
       uses: actions/checkout@v3
@@ -45,6 +45,16 @@ jobs:
         if [ "$ISSUE_STATE" != "open" ]; then
           echo "Issue #$ISSUE_NUMBER is not open. Skipping association."
           exit 0
+        fi
+
+    - name: Verify or create "in progress" label
+      run: |
+        LABEL_EXISTS=$(gh label list --json name -q '.[] | select(.name=="in progress")')
+        if [ -z "$LABEL_EXISTS" ]; then
+          echo "Label 'in progress' does not exist. Creating label..."
+          gh label create "in progress" --color FF5733 --description "Indicates that the issue is in progress"
+        else
+          echo "Label 'in progress' already exists."
         fi
 
     - name: Associate branch with issue
