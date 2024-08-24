@@ -41,7 +41,7 @@ jobs:
         ISSUE_NUMBER=${{ github.event.issue.number }}
         BRANCH_NAME="feature/$ISSUE_NUMBER/$(echo "${{ github.event.issue.title }}" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/_/g' | sed 's/^_//;s/_$//')"
         COMMENT="The branch \`$BRANCH_NAME\` has been created. You can check it out with the following commands:\n\n\`\`\`bash\ngit fetch origin\ngit checkout $BRANCH_NAME\n\`\`\`"
-        gh issue comment $ISSUE_NUMBER --body "$COMMENT"
+        echo "$COMMENT" | gh issue comment $ISSUE_NUMBER --body -
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed for the gh command
